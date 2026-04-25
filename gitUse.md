@@ -1198,6 +1198,131 @@ git push -u origin main
 
 # 你现在的 AndroidProjects 仓库，本来就是打算放多个 Android 项目的，所以用 方案 1 最合适。执行完第一步的 git pull 后，你就能在 GitHub 上看到你的项目文件了。
 
+# 如果把github上的视为版本1.0本地的视为1.1，怎么打标签，文件是一个md文档，并非exe文件
+
+## 第一步：提交本地修改 (Commit)
+
+1. 首先，必须把你修改过的 MD 文档提交到本地的 Git 仓库。
+```bash
+# 1. 暂存修改的文件
+git add .
+
+# 2. 提交并写上说明（这一步是生成新版本的基础）
+git commit -m "更新文档内容，升级至 v1.1"
+```
+## 第二步：打上 v1.1 标签 (Tag)
+2. 推荐使用“附注标签”（Annotated Tag），因为它包含作者、日期和说明信息，更适合正式版本。
+```bash
+# 命令格式：git tag -a [标签名] -m "[说明信息]"
+git tag -a v1.1 -m "发布文档版本 1.1，更新了部分章节"
+```
+
+## 第三步：推送到 GitHub (Push)
+
+3. 默认情况下，git push 不会推送标签。你需要显式地把标签推上去，这样 GitHub 上才会显示 v1.1。
+```bash
+# 方法 A：只推送刚才打的 v1.1 标签（推荐）
+git push origin v1.1
+
+# 方法 B：一次性推送所有本地新增的标签
+git push origin --tags
+```
+| 操作场景 | 命令示例 | 说明 |
+| :--- | :--- | :--- |
+| 创建标签 | `git tag -a v1.1 -m "说明"` | 给当前最新提交打标签（推荐） |
+| 查看标签 | `git tag` | 列出所有本地标签 |
+| 查看标签详情 | `git show v1.1` | 查看该标签的说明和对应的代码变动 |
+| 推送标签 | `git push origin v1.1` | 将标签上传到 GitHub |
+| 删除本地标签 | `git tag -d v1.1` | 如果打错了，可以删除本地标签 |
+| 删除远程标签 | `git push origin --delete v1.1` | 如果远程也打错了，可以删除 |<websource>source_group_web_3</websource>
+
+# 既然你的项目是文档（MD）而非代码（exe），打标签还有以下两个实用场景
+
+1. 在 GitHub 上生成“发行版” (Release)
+- 当你把 v1.1 标签推送到 GitHub 后，你可以去 GitHub 网页端。
+- 进入仓库的 Releases 页面，点击 Draft a new release。
+- 在 "Tag" 下拉框中选择你刚才推上去的 v1.1。
+- 在这里你可以写下 v1.1 版本的更新日志（比如：修正了错别字、新增了第三章等），这对阅读文档的人非常友好。
+
+2. 查看版本差异
+
+```bash
+git diff v1.0 v1.1
+```
+
+# 给历史提交打标签
+- 你发现之前的某次提交（比如 commit ID 为 abc123）其实才是稳定的 1.0 版本，你想回过头给它补一个标签。
+
+1. 找到提交 ID：
+
+```bash
+git log
+```
+查看历史记录，找到你想标记的那次提交的哈希值（例如 a1b2c3d）。
+
+2. 打标签：
+
+```bash
+# 在命令末尾加上提交 ID
+git tag -a v1.0 a1b2c3d -m "回溯标记版本 1.0"
+```
+
+3. 推送：
+```bash
+git push origin v1.0
+```
+---
+🛠️ 常用标签管理命令速查
+
+| 操作 | 命令 | 说明 |
+| :--- | :--- | :--- |
+| 查看标签 | `git tag` | 列出本地所有标签 |
+| 查看详情 | `git show v1.0` | 查看该标签对应的代码快照和说明 |
+| 删除本地 | `git tag -d v1.0` | 如果打错了，先删除本地标签 |
+| 删除远程 | `git push origin --delete v1.0` | 如果远程也打错了，需删除远程标签 |
+
+---
+💡 进阶：在 GitHub 上发布 Release
+
+当你把 v1.0 标签推送到 GitHub 后，建议去网页端做一个 Release，这样用户能更直观地看到版本更新：
+1. 进入你的 GitHub 仓库页面。
+
+
+2. 点击右侧的 Releases，然后点击 Draft a new release。
+
+
+3. 在 Tag 下拉菜单中选择你刚才推上去的 v1.0。
+
+
+4. 填写发布标题和说明（比如更新日志），点击 Publish release。
+
+这样，你的项目就拥有了一个正式的 v1.0 版本了！
+
+---
+
+# 哈希值就是 commit 后面那一长串字符
+
+具体的完整哈希值是： e4ac917b0be32dd1ee1a6e61759eb442e0d9c34c
+
+通常情况下，你只需要复制前 7 位就足够了，即： e4ac917
+
+```bash
+git tag -a v1.0 e4ac917 -m "发布版本 1.0"
+
+git push origin v1.0
+```
+
+# 完整的流程
+
+```bash
+git add gitUse.md
+git commit -m "更新内容，准备发布 1.1"
+
+git push
+
+git tag -a v1.1 -m "发布版本 1.1"
+git push origin v1.1
+```
 
 
 # 远程仓库有main主分支，test1，test2两个分支，本地有一个main分支，还有test3，test4分支，项目地址为D:/python/pro，当前分支是test4，所有命令根据这个场景写一遍
