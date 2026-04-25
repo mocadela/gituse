@@ -137,6 +137,11 @@ git push
 |`git remote -v`|查看远程仓库关联|确认远程仓库地址是否正确|
 ---
 
+
+
+
+
+
 ## 四、第四步：新手避坑指南（常见问题解决）
 
 ### 1. 第一次 push 报错：fatal: remote origin already exists
@@ -1110,18 +1115,22 @@ git checkout traeOne
 
 #  GitHub 上创建新仓库时
 
-Choose visibility：选 Public
-原因：免费账号只能创建公开仓库。如果你选 Private，虽然也是免费的，但协作人数有限制。对于个人练习项目或开源项目，Public 是标准选择。
-Add README：选 Off (不勾选)
-原因：因为你是在本地（Android Studio）已经创建好了项目，本地已经有代码了。如果这里勾选了，GitHub 会生成一个远程的 README 文件，导致你的本地代码和远程代码不一致，一会推送时会报错（需要强制推送或先拉取合并），对新手很不友好。保持为空，直接上传你的本地代码即可。
-Add .gitignore：选 Android
-原因：非常重要！Android 项目会生成很多临时文件（如 build 文件夹、.idea 配置、.iml 文件等），这些文件不需要上传到 GitHub。选择 Android，GitHub 会自动帮你创建一个规则文件，忽略掉这些垃圾文件，只上传核心代码。
-Add license：选 None
-原因：这是关于代码开源协议的。如果你只是自己练习，或者还没想好怎么授权给别人用，就选 None。以后想加随时可以加。
+## Choose visibility：选 Public
+### 原因：免费账号只能创建公开仓库。如果你选 Private，虽然也是免费的，但协作人数有限制。对于个人练习项目或开源项目，Public 是标准选择。
+1. Add README：选 Off (不勾选)
 
-最关键的一点是：千万不要勾选 "Add README"！
-错误做法：勾选了 README -> 点击创建 -> 回到本地 Android Studio 推送代码 -> 报错 "rejected"（拒绝推送） -> 新手崩溃。
-正确做法：保持 README 为空 -> 点击创建 -> 按照网页上提示的命令行指令（git remote add origin ...）在本地关联并推送。
+    原因：因为你是在本地（Android Studio）已经创建好了项目，本地已经有代码了。如果这里勾选了，GitHub 会生成一个远程的 README 文件，导致你的本地代码和远程代码不一致，一会推送时会报错（需要强制推送或先拉取合并），对新手很不友好。保持为空，直接上传你的本地代码即可。
+2. Add .gitignore：选 Android
+
+    原因：非常重要！Android 项目会生成很多临时文件（如 build 文件夹、.idea 配置、.iml 文件等），这些文件不需要上传到 GitHub。选择 Android，GitHub 会自动帮你创建一个规则文件，忽略掉这些垃圾文件，只上传核心代码。
+3. Add license：选 None
+
+    原因：这是关于代码开源协议的。如果你只是自己练习，或者还没想好怎么授权给别人用，就选 None。以后想加随时可以加。
+
+
+- 最关键的一点是：千万不要勾选 "Add README"！
+- 错误做法：勾选了 README -> 点击创建 -> 回到本地 Android Studio 推送代码 -> 报错 "rejected"（拒绝推送） -> 新手崩溃。
+- 正确做法：保持 README 为空 -> 点击创建 -> 按照网页上提示的命令行指令（git remote add origin ...）在本地关联并推送。
 
 
 
@@ -1131,20 +1140,29 @@ Add license：选 None
 - 你的本地 main 分支，落后于 GitHub 远程仓库的 main 分支，远程已经有了别人（或你在别的电脑上）提交过的新代码，Git 为了防止覆盖别人的修改，直接拒绝了你的推送。
 
 - 先拉取远程最新代码，合并到本地
+```bash
 git pull origin main --rebase
+```
+
 
 - 解决可能的冲突（如果有）
 如果命令行提示有冲突，打开 IDE 里的冲突文件，手动解决代码冲突，然后执行：
+```bash
 git add .
 git rebase --continue
+```
 
 - 再次推送你的代码
 
+```bash
 git push -u origin main
+```
 
 - 如果你确定远程的代码可以被覆盖（比如远程仓库是你刚建的、没有重要代码），可以用强制推送命令：
 
+```bash
 git push -f origin main
+```
 
 注意：-f 是强制推送，会直接用你的本地代码覆盖远程仓库的所有内容，多人协作的项目里千万不要用，会把别人的代码冲掉。
 
@@ -1155,20 +1173,24 @@ git push -f origin main
 - 你本地的 BroadcastReceiverDemo 项目，是一个独立的、全新的 Git 仓库，和远程仓库没有任何共同的提交历史。
 - 直接 git push 会触发 “没有共同祖先” 的错误，Git 不知道怎么合并这两个完全独立的仓库。
 
-- 方案 1：把项目推到这个已有的仓库里（推荐，你现在的情况）
+## 方案 1：把项目推到这个已有的仓库里（推荐，你现在的情况）
 
-先把远程仓库的 main 分支拉下来，并把你的本地提交 “嫁接” 上去
+1. 先把远程仓库的 main 分支拉下来，并把你的本地提交 “嫁接” 上去
 
+```bash
 git pull origin main --allow-unrelated-histories
+```
 
 --allow-unrelated-histories 是关键，它允许合并两个没有共同历史的仓库。
 执行后，Git 会自动创建一个合并提交，把 .gitignore 和你的项目文件合并到一起。
 
-- 再执行推送：
+2. 再执行推送：
 
+```bash
 git push -u origin main
+```
 
-- 方案 2：给 BroadcastReceiverDemo 建一个独立的仓库（更干净）
+## 方案 2：给 BroadcastReceiverDemo 建一个独立的仓库（更干净）
 
 - 删掉本地的 .git 文件夹（让它变成一个普通文件夹）
 - 去 GitHub 新建一个仓库，名字就叫 BroadcastReceiverDemo
