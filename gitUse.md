@@ -1325,4 +1325,32 @@ git push origin v1.1
 ```
 
 
+# GitHub 网页上创建一个新的发布版本release
+## 核心填写步骤
+1. Tag version (标签版本)
+- 这里已经默认选中了 v1.0，并且下面显示“Existing tag”，说明你本地推送的 v1.0 标签已经被 GitHub 识别到了。
+- 不用动，保持 v1.0 即可。
+2. Release title (发布标题)
+- 这里默认也是 v1.0。
+- 建议修改为更友好的名字，比如：**`GitUse 1.0 正式版`** 或者 `Version 1.0 Release`，这样用户看起来更直观。当然，保持 `v1.0` 也没问题。
+3. Release notes (发布说明)
+- 这是给用户看的更新日志。
+- 你可以手动输入，比如：
+
+🎉 **这是 GitUse 项目的第一个稳定版本！**
+
+主要更新内容：
+- ✅ **完成了基础功能开发**
+- 🐛 **修复了已知 Bug**
+
+或者，点击页面上的 "Generate release notes" 按钮，GitHub 会自动帮你根据 Commit 记录生成一份草稿，你可以再手动修改。
+4. Attach binaries (附加文件)
+- 如果你的项目有编译好的 .exe 或其他安装包，可以拖拽到这里。如果是纯代码项目，这里留空即可。
+5. Set as a pre-release
+- 这是一个复选框，勾选后表示这是“预发布版本”（测试版）。 既然你打的是 1.0，通常是正式版，不要勾选。
+
+
+## 最后一步
+填完后，点击绿色的 "Publish release" 按钮，你的 v1.0 版本就正式发布到 GitHub 上了！
+
 # 远程仓库有main主分支，test1，test2两个分支，本地有一个main分支，还有test3，test4分支，项目地址为D:/python/pro，当前分支是test4，所有命令根据这个场景写一遍
