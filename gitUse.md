@@ -1353,4 +1353,196 @@ git push origin v1.1
 ## 最后一步
 填完后，点击绿色的 "Publish release" 按钮，你的 v1.0 版本就正式发布到 GitHub 上了！
 
+
+
+# 在github仓库里没有exe文件，那么这些release的exe等文件是怎么打标签，并且release的
+
+你看到的这些 .exe、.msi、.7z 文件，并不是直接存在仓库代码里的，而是在发布 Release 时「附加」上去的产物。
+
+---
+
+## 一、 核心概念：Release 是 GitHub 的独立发布功能
+
+Release 是 GitHub 提供的「版本发布页」，它和代码仓库是分开的：
+
+- 仓库里存的是源代码（.py/.cpp/.java 等）
+- Release 里存的是构建产物（.exe/.msi/.zip 等二进制文件）
+- 两者可以完全独立，仓库里不需要提前放这些文件
+
+
+## 二、 两种常见实现方式
+
+### 方式 1：手动发布（简单项目常用）
+
+1. **本地构建**：开发者在自己电脑上，把源代码编译 / 打包成 .exe、.msi、.7z 等文件。
+2. **打 Git 标签**：给当前代码版本打一个标签，比如 git tag v8.9.3，再推送到 GitHub git push origin v8.9.3。
+3. **创建 Release**：在 GitHub 仓库的 Releases 页面，基于这个 v8.9.3 标签新建 Release。
+4. **上传附件**：在 Release 编辑页，把本地生成的 .exe 等文件拖进去上传，发布即可。
+
+这种方式的缺点是每次都要手动打包，不适合频繁更新的项目。
+
+
+## 方式 2：GitHub Actions 自动化构建（主流方式，你截图里的 Notepad++ 就是这类）
+这是现在开源项目最常用的方案，完全自动，不用手动操作：
+
+1. **配置工作流文件**：在仓库根目录新建 .github/workflows/release.yml，定义构建流程。
+2. **触发条件**：设置为「推送版本标签时触发」，比如 tags: ["v*.*.*"]，只要你推送 v8.9.3 标签，就会自动运行工作流。
+3. **云端构建**：GitHub 的服务器会自动拉取代码，根据配置文件编译、打包成 .exe、.msi、.7z，甚至生成校验和 .sha256 与签名 .sig 文件。
+4. **自动发布 Release**：构建完成后，工作流会自动基于标签创建 Release，并把所有产物上传到附件里，就是你截图里看到的 Assets 列表。
+
+
+# 三、给你一个可以直接用的简易示例（以 Windows exe 为例）
+
+```yaml
+# .github/workflows/release.yml
+name: Build & Release
+on:
+  push:
+    tags:
+      - 'v*'  # 推送v开头的标签就触发
+
+jobs:
+  build:
+    runs-on: windows-latest  # 用Windows虚拟机来构建exe
+    steps:
+      - uses: actions/checkout@v4
+
+      # 这里写你的构建命令，比如用pyinstaller打包Python脚本
+      - name: Build exe
+        run: |
+          pip install pyinstaller
+          pyinstaller --onefile main.py
+
+      # 上传构建产物
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: exe-file
+          path: dist/main.exe
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: exe-file
+          path: ./artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifacts/main.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+# 四、为什么仓库里看不到这些 exe 文件？
+
+因为它们是：
+- 构建过程中在 GitHub 云端临时生成的
+- 只存在于 Release 附件里，不会提交到 Git 仓库
+- 仓库里只会有源代码和工作流配置文件，不会包含编译后的二进制文件
+
+💡 补充说明：你截图里的 .sig 签名文件、.sha256 校验和文件，也是在构建流程里自动生成的，用来保证用户下载的文件没有被篡改，是很多正规开源项目的标准做法。
+
+# 版本号又是怎么来的呢？
+
+你看到的 v8.9.3、v1.0.0、v2.5.1 这种版本号，不是 GitHub 自动生成的，而是人定 + Git 标签 + 发布规则 共同决定的。
+
+
+---
+
+# 一、版本号的来源只有 3 个地方
+
+---
+
+## 1. 开发者自己规定的（最核心）
+版本号不是自动生成的，**是项目负责人手动定的**。比如：
+
+- 第一次发布 → v1.0.0
+- 修复小 bug → v1.0.1
+- 加了新功能 → v1.1.0
+- 大重构 → v2.0.0
+
+这叫**语义化版本（Semantic Versioning）**，规则是：
+```plaintext
+主版本号 . 次版本号 . 修订号
+  v     1   .    0    .    0
+```
+
+
+- 主版本：不兼容的大更新
+- 次版本：新增功能，兼容旧版
+- 修订号：只修 bug
+
+
+## 2. Git 标签（tag）= 版本号
+
+GitHub 的 **Release 版本号 = Git 标签名**，也就是说，版本号是由你在本地打标签时定义的。比如：
+
+```bash
+git tag v8.9.3
+git push origin v8.9.3
+```
+
+GitHub 就会识别这个 **v8.9.3** 作为版本号
+
+
+## 3. 发布 Release 时填写
+
+即使没有 Git 标签，你也可以在 GitHub 页面手动创建版本号：
+
+`Choose a tag → Create new tag`
+
+输入：`v1.2.3`
+
+GitHub 会自动帮你创建标签 + 版本号。
+
+---
+
+# 二、那项目里的版本号写在哪里？
+
+通常有 3 个位置：
+
+## 1. 代码里写死（最常见）
+Python：`__version__ = "1.2.3"`
+
+JavaScript：`version: "1.2.3"`
+
+C/C++：`#define VERSION "1.2.3"`
+
+## 2. 配置文件里
+- package.json
+- pyproject.toml
+- setup.py
+- CMakeLists.txt
+## 3. Git 标签自动读取（自动化项目）
+很多项目不写死版本号，而是：
+```plaintext
+版本号 = 从 Git 标签读取
+
+```
+# 三、自动化项目怎么自动生成版本号？（你截图那种）
+
+像 Notepad++、VSCode、你看到的所有带 exe 的大型项目，都是：
+
+**自动流程：**
+1. 开发者打标签 git tag v8.9.3
+2. 推送到 GitHub
+3. GitHub Actions 自动读取标签名作为版本号
+4. 自动编译 exe
+5. 自动生成 Release，版本号就是 v8.9.3
+
+# 四、一句话总结
+**版本号 = 开发者规定 → 打成 Git 标签 → GitHub Release 显示这个标签作为版本**
+
+
+版本号不是**自动生成**的，
+
+是**人定规则 + Git 标签**来的。
+
+
+
 # 远程仓库有main主分支，test1，test2两个分支，本地有一个main分支，还有test3，test4分支，项目地址为D:/python/pro，当前分支是test4，所有命令根据这个场景写一遍
